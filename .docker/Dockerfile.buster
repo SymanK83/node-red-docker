@@ -41,7 +41,7 @@ COPY package.json .
 FROM base AS build
 
 # Install Build tools
-RUN apt-get install -y udev python && \
+RUN apt-get update -y && apt-get upgrade -y && apt-get install -y udev python && \
     npm install --unsafe-perm --no-update-notifier --no-audit --only=production && \
     /tmp/remove_native_gpio.sh && \
     cp -R node_modules prod_node_modules
@@ -56,7 +56,7 @@ ARG ARCH
 ARG TAG_SUFFIX
 
 LABEL org.label-schema.build-date=${BUILD_DATE} \
-    org.label-schema.docker.dockerfile=".docker/Dockerfile.alpine" \
+    org.label-schema.docker.dockerfile=".docker/Dockerfile.buster" \
     org.label-schema.license="Apache-2.0" \
     org.label-schema.name="Node-RED" \
     org.label-schema.version=${BUILD_VERSION} \
@@ -80,16 +80,8 @@ RUN curl -SL \
     ls -all && \
     apt-get install -y ./voice2json_2.0.0_amd64.deb
 
-RUN mkdir -p "${HOME}/.config/voice2json" && \
-    curl -SL https://github.com/synesthesiam/de_pocketsphinx-cmu/archive/v1.0.tar.gz | \
-      tar -C "${HOME}/.config/voice2json" --skip-old-files --strip-components=1 -xzvf -
-
-RUN voice2json --debug train-profile
-
-
-
-
-
+# User configuration directory volume
+VOLUME ["/voice2json_profiles"]    
 
 
 USER node-red
